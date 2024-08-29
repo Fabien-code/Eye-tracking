@@ -1,15 +1,9 @@
-"""
-Prototype Face Vision with OpenCV
-"""
-# STEP 1: Import the necessary modules.
-import time
-import numpy as np
-import mediapipe as mp
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
-import cv2
+
+
 from typing import Tuple, Union
 import math
+import cv2
+import numpy as np
 
 MARGIN = 10  # pixels
 ROW_SIZE = 10  # pixels
@@ -77,44 +71,3 @@ def visualize(
                 FONT_SIZE, TEXT_COLOR, FONT_THICKNESS)
 
   return annotated_image
-
-BaseOptions = mp.tasks.BaseOptions
-FaceDetector = mp.tasks.vision.FaceDetector
-FaceDetectorOptions = mp.tasks.vision.FaceDetectorOptions
-FaceDetectorResult = mp.tasks.vision.FaceDetectorResult
-VisionRunningMode = mp.tasks.vision.RunningMode
-# Create a face detector instance with the live stream mode:
-def print_result(result: FaceDetectorResult, output_image: mp.Image, timestamp_ms: int):
-    print('face detector result: {}'.format(result))
-# STEP 2: Create an FaceDetector object.
-base_options = python.BaseOptions(model_asset_path='src/eyetracking/vision/models/blaze_face_short_range.tflite')
-options = vision.FaceDetectorOptions(base_options=base_options,running_mode = mp.tasks.vision.RunningMode.LIVE_STREAM,result_callback=print_result)
-detector = vision.FaceDetector.create_from_options(options)
-
-
-# STEP 3: Loop on webcam
-# access webcam
-cap = cv2.VideoCapture(0)
-
-while True:
-    # pull frame
-    ret, frame = cap.read()
-    # mirror frame
-    frame = cv2.flip(frame, 1)
-    
-    image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-    
-    # STEP 4: Detect faces in the input image.
-    detection_result = detector.detect_async(image,int(time.time() * 1000))
-
-    # STEP 5: Process the detection result. In this case, visualize it.
-    image_copy = np.copy(image.numpy_view())
-    annotated_image = visualize(image_copy, detection_result)
-    rgb_annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
-    cv2_imshow(rgb_annotated_image)
-    if cv2.waitKey(1) == ord('q'):
-        break
-
-# release everything
-cap.release()
-cv2.destroyAllWindows()

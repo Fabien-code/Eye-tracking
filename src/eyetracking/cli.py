@@ -4,8 +4,9 @@ import sys
 import argparse
 import logging
 import cv2
-import imutils
-from .vision.getFace import EyeTracker
+import mediapipe as mp
+from .vision.landmarker import landmarker_and_result
+
 
 
 def main() -> None:
@@ -28,16 +29,6 @@ def main() -> None:
         dest="loglevel",
         default=0,
     )
-    parser.add_argument(
-        "-f",
-        "--face",
-        help="Face Cascade file path",
-    )
-    parser.add_argument(
-        "-e",
-        "--eye",
-        help="Eye Cascade file path",
-    )
     args = parser.parse_args()
     # Logging level start at Warning (level = 30)
     # Each -v sub 10 to logging level (minimum is 0)
@@ -49,27 +40,28 @@ def main() -> None:
     sys.stderr.reconfigure(encoding="utf-8")  # type: ignore
     logging.basicConfig(level=loglevel, format="%(message)s")
 
-    # construct the eye tracker
-    et = EyeTracker(args.face, args.eye)
-    # if a video path was not supplied, grab the reference
-    camera = cv2.VideoCapture(0)
-    # keep loopings
+    # access webcam
+    cap = cv2.VideoCapture(0)
+   
+   
+   # create landmarker
+    hand_landmarker = landmarker_and_result()
+   
     while True:
-        # grab the current frame
-        (grabbed, frame) = camera.read()
-        # resize the frame and convert it to grayscale
-        frame = imutils.resize(frame, width=500)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        # detect faces and eyes in the image
-        rects = et.track(gray)
-        # loop over the face bounding boxes and draw them
-        for rect in rects:
-            cv2.rectangle(frame, (rect[0], rect[1]), (rect[2], rect[3]), (0, 255, 0), 2)
-        # show the tracked eyes and face
-        cv2.imshow("Tracking", frame)
-        # if the ‘q’ key is pressed, stop the loop
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        # pull frame
+        ret, frame = cap.read()
+        # mirror frame
+        frame = cv2.flip(frame, 1)
+        # update landmarker results
+        hand_landmarker.detect_async(frame)
+        print(hand_landmarker.result)
+        # draw landmarks on frame
+        # frame = draw_landmarks_on_image(frame,hand_landmarker.result)
+        if cv2.waitKey(1) == ord('q'):
             break
-    # cleanup the camera and close any open windows
-    camera.release()
+
+    # release everything
+    cap.release()
+    hand_landmarker.close()
     cv2.destroyAllWindows()
+

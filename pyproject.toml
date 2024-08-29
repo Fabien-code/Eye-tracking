@@ -14,8 +14,8 @@ track-eye = "eyetracking.cli:main"
 [tool.poetry.dependencies]
 python = "^3.12"
 numpy = "^2.1.0"
+mediapipe = "^0.10.14"
 opencv-python = "^4.10.0.84"
-imutils = "^0.5.4"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.11.2"
