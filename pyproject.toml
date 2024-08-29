@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "eye-tracking"
+version = "0.1.0"
+description = "Eye Tracking Project"
+authors = ["Nizar AGOUGILE, Fabien GAUTIER"]
+license = "MIT"
+readme = "README.md"
+
+packages = [{ include = "eye-tracking", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numpy = "^2.1.0"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.11.2"
+poethepoet = "^0.27.0"
+pylint = "^3.2.6"
+black = "^24.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
