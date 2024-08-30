@@ -8,7 +8,6 @@ import mediapipe as mp
 from .vision.landmarker import landmarker_and_result
 
 
-
 def main() -> None:
     """
     A simple CLI tool that converts docx document to Alstom SwRS format (Sphinx).
@@ -42,11 +41,10 @@ def main() -> None:
 
     # access webcam
     cap = cv2.VideoCapture(0)
-   
-   
-   # create landmarker
+
+    # create landmarker
     hand_landmarker = landmarker_and_result()
-   
+
     while True:
         # pull frame
         ret, frame = cap.read()
@@ -57,11 +55,10 @@ def main() -> None:
         print(hand_landmarker.result)
         # draw landmarks on frame
         # frame = draw_landmarks_on_image(frame,hand_landmarker.result)
-        if cv2.waitKey(1) == ord('q'):
+        if cv2.waitKey(1) == ord("q"):
             break
 
     # release everything
     cap.release()
     hand_landmarker.close()
     cv2.destroyAllWindows()
-
