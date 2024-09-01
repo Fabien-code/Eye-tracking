@@ -9,17 +9,24 @@ from mediapipe.tasks.python.vision import (
 from mediapipe.tasks.python import BaseOptions
 from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
-
-
 import cv2
 import math
 import numpy as np
+import pyautogui
+
 
 DESIRED_HEIGHT = 480
 DESIRED_WIDTH = 480
 
 dir_path = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(dir_path, "models", "hand_landmarker.task")
+
+def extract_landmarks(hand_landmarks_list):
+    landmarks = []
+    for hand_landmarks in hand_landmarks_list:
+        for landmark in hand_landmarks:
+            landmarks.append((landmark.x, landmark.y, landmark.z))
+    return landmarks
 
 
 def resize_and_show(image):
@@ -57,7 +64,24 @@ def draw_landmarks_on_image(rgb_image, detection_result):
             solutions.drawing_styles.get_default_hand_connections_style(),
         )
 
+        # Draw landmark indices/numbers on the image.
+        for i, landmark in enumerate(hand_landmarks):
+            h, w, _ = annotated_image.shape
+            cx, cy = int(landmark.x * w), int(landmark.y * h)
+            cv2.putText(
+                annotated_image,
+                str(i),
+                (cx, cy),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,  # Font scale
+                (255, 0, 0),  # Color: Blue
+                1,  # Thickness
+                cv2.LINE_AA
+            )
+
     return annotated_image
+
+
 
 
 # Options for the hand landmarker
@@ -89,6 +113,9 @@ print("Running hand landmarker...")
 
 frame_count = 0
 
+x_screen, y_screen = pyautogui.size()
+
+pointer1 = [0,0]
 # while True:
 while True:
     frame_count += 1
@@ -104,10 +131,27 @@ while True:
     mp_image = Image(image_format=ImageFormat.SRGB, data=rgb_frame)
     results = detector.detect(mp_image)
 
+    
     # Draw the hand landmarks on the frame
     if results:
+        landmarks = extract_landmarks(results.hand_landmarks)
+        
         annotated_image = draw_landmarks_on_image(mp_image.numpy_view(), results)
-
+        hand_landmarks_list = results.hand_landmarks
+        try:
+            pointer = landmarks[8]
+            pouce = landmarks[4]
+            x = pointer[0]*x_screen
+            y = pointer[1]*y_screen+100
+            
+            print(abs(pointer[1] - pouce[1])*100 ,"  ", abs(pointer[0] - pouce[0])*100)
+            if abs(pointer[1] - pouce[1])*100 < 5 and abs(pointer[0] - pouce[0])*100 < 1:
+                pyautogui.click()
+                
+            pyautogui.moveTo(x, y)
+            pointer1 = pointer
+        except Exception as e :
+            pass
     # For local use
     cv2.imshow("Frame", annotated_image)
 
